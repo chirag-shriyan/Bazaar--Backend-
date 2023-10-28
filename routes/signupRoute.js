@@ -30,7 +30,7 @@ router.post('/', async (req, res) => {
                 break;
 
             default:
-                res.json('Something went wrong');
+                res.status(500).send(error);
                 break;
         }
 

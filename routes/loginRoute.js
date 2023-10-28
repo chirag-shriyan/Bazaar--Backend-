@@ -20,21 +20,8 @@ router.get('/', async (req, res) => {
             res.status(401).send({ message: 'username or password is invalid' });
         }
 
-        // const token = jwt.sign()
-
-
-
-
     } catch (error) {
-        switch (error.code) {
-            case 11000:
-                res.status(403).send({ message: error.keyValue, error: 'Already exist in the database' });
-                break;
-
-            default:
-                res.json({ message: error.message });
-                break;
-        }
+        res.status(500).json({ message: error.message });
     }
 });
 
