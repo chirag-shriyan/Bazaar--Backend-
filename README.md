@@ -2,7 +2,7 @@
 
 The api is still under development
 
-<p>For login (GET) ==> /api/login</p>
+<p>For login (POST) ==> /api/login</p>
 <p>For signup (POST) ==> /api/signup</p>
 <p>For created product (GET) ==> /api/product (Work in progress)</p>
 <p>For fetching products (POST) ==> /api/product</p>
