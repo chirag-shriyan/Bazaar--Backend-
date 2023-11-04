@@ -12,3 +12,6 @@ The api is still under development
 <p>MONGODB_CONNECT ==> should be mongoDB connection string or in case of local database you can use this uri (mongodb://localhost:27017/Bazaar)</p>
 
 <p>JWT_SECRET ==> can be any string</p>
+
+# To Do
+<p>Create documentation for product(GET) route</p>
