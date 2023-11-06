@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
             select,
             search
         } = req.query;
-        
+
         const queryObj = {};
 
         if (name) {
@@ -106,8 +106,28 @@ router.get('/', async (req, res) => {
 
 });
 
+router.get('/:id', async (req, res) => {
+
+    try {
+        // const { id } = req.query;
 
 
+        const productData = ProductModel.find({ _id: id });
+
+        return res.status(200).send({ data: productData });
+
+
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send(error);
+    }
+
+
+});
+
+
+// Create Product
 router.post('/', async (req, res) => {
 
     try {

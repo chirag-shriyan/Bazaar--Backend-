@@ -13,6 +13,8 @@ app.use(cors());
 app.use('/api/login', require('./routes/loginRoute'));
 app.use('/api/signup', require('./routes/signupRoute'));
 app.use('/api/product', require('./routes/productRoute'));
+app.use('/api/user', require('./routes/userRoute'));
+app.use('/api/admin', require('./routes/adminRoute'));
 
 app.listen(PORT, async () => {
     await dbConnect();
