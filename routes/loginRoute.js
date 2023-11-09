@@ -14,14 +14,14 @@ router.post('/', async (req, res) => {
 
         if (IsVerified) {
             const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-            res.status(200).send({ token: token });
+            return res.status(200).send({ token: token });
         }
         else {
-            res.status(401).send({ message: 'username or password is invalid' });
+            return res.status(401).send({ message: 'username or password is invalid' });
         }
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).send({ message: 'Internal server error' });
     }
 });
 

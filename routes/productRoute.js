@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
             description,
             price,
             categories,
-            sort,
+            sort_by,
             select,
             search
         } = req.query;
@@ -56,25 +56,29 @@ router.get('/', async (req, res) => {
             queryObj.categories = { $regex: categories, $options: "i" };
         }
 
-        if (search && !name && !description) {
-            queryObj.search = {
-                $or:
-                    [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }]
+        if (search) {
+            if (!name && !description) {
+                queryObj.search = {
+                    $or:
+                        [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }]
+                }
             }
-        }
-        else {
-            return res.status(400).send({ message: 'You can not use search with name and description' });
+            else {
+                return res.status(400).send({ message: 'You can not use search with name and description' });
+            }
+
         }
 
-        console.log(queryObj);
+
+        // console.log(queryObj);
         let productData = ProductModel.find(queryObj.search ? queryObj.search : queryObj);
         let totalResults = await ProductModel.countDocuments(queryObj.search ? queryObj.search : queryObj);
 
-        if (sort) {
+        if (sort_by) {
             // if the user is using "," instead of "+" in the url
             // let sortFix = sort.split(",").join(" ");
             // productData.sort(sortFix);
-            productData.sort(sort);
+            productData.sort(sort_by);
         }
 
         if (select) {
@@ -100,7 +104,17 @@ router.get('/', async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        return res.status(500).send(error);
+        switch (error.name) {
+            case 'CastError':
+                return res.status(400).send({ message: 'Bad Request' });
+                break;
+
+            default:
+                return res.status(500).send({ message: error });
+                break;
+        }
+        // return res.status(500).send({ message: 'Internal server error' });
+
     }
 
 
@@ -120,7 +134,8 @@ router.get('/:id', async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        return res.status(500).send(error);
+        return res.status(500).send({ message: 'Internal server error' });
+
     }
 
 
@@ -146,10 +161,10 @@ router.post('/', async (req, res) => {
     } catch (error) {
         if (error.name === 'ValidationError') {
             console.log(error);
-            res.status(403).json(error);
+            return res.status(403).json(error);
         }
         else {
-            res.status(500).send(error);
+            return res.status(500).send({ message: 'Internal server error' });
         }
     }
 

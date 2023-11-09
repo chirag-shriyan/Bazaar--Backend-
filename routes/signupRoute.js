@@ -21,16 +21,16 @@ router.post('/', async (req, res) => {
         });
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        res.status(200).send({ token: token });
+        return res.status(200).send({ token: token });
 
     } catch (error) {
         switch (error.code) {
             case 11000:
-                res.status(403).send({ message: error.keyValue, error: 'Already exist in the database' });
+                return res.status(403).send({ message: error.keyValue, error: 'Already exist in the database' });
                 break;
 
             default:
-                res.status(500).send(error);
+                return res.status(500).send({ message: 'Internal server error' });
                 break;
         }
 

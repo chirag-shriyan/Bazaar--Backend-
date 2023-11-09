@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const UserModel = require('../models/UserModel');
+const jwt = require('jsonwebtoken');
 const AdminModel = require('../models/AdminModel');
 const { isValidObjectId } = require('mongoose');
 
@@ -19,29 +20,50 @@ function hasRole(roleArr, findRole) {
 router.get('/', async (req, res) => {
 
     try {
-        const adminId = req.headers.admin_id;
-        const isValidAdminId = isValidObjectId(adminId);
+        const token = req.headers.access_token;
+        const adminId = jwt.verify(token, process.env.JWT_SECRET).id;
 
-        if (isValidAdminId) {
-            const admin = await AdminModel.findOne({ userId: adminId }).select('role');
-            const limit = 5;
-            const isAdmin = hasRole(admin.role, 'superAdmin');
+        if (adminId) {
 
-            if (isAdmin) {
-                const user = await UserModel.find({}).limit(limit);
-                res.status(200).send({ data: user });
+            const isValidAdminId = isValidObjectId(adminId);
+            if (isValidAdminId) {
+                const admin = await AdminModel.findOne({ userId: adminId }).select('role');
+                const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+
+                if (isAdmin) {
+                    const limit = req.query.limit || 5;
+                    const page = req.query.page < 0 ? 1 : req.query.page;
+                    const skip = (page - 1) * limit;
+
+                    const users = await UserModel.find({}).skip(skip).limit(limit);
+                    const totalResults = await UserModel.find({}).countDocuments();
+                    return res.status(200).send({ data: users, totalResults });
+                }
+                else {
+                    return res.status(401).send({ message: `Access Denied` });
+                }
+
             }
             else {
-                res.status(200).send({ message: `Access Denied` });
+                return res.status(400).send({ message: `The ObjectId:${adminId} is invalid` });
             }
 
         }
         else {
-            res.status(400).send({ message: `The ObjectId:${adminId} is invalid` });
+            return res.status(401).send({ message: `Access Denied` });
         }
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.log(error);
+        switch (error.message) {
+            case 'jwt malformed':
+                return res.status(401).send({ message: `Access Denied` });
+                break;
+
+            default:
+                return res.status(500).send({ message: 'Internal server error' });
+                break;
+        }
     }
 });
 
@@ -49,19 +71,23 @@ router.get('/:id', async (req, res) => {
 
     try {
         const id = req.params.id;
-        const isValidId = isValidObjectId(id);
 
-        if (isValidId) {
-            const user = await UserModel.findById(id).select('email username');
-            res.status(200).send({ data: user });
+        if (id) {
+            const isValidId = isValidObjectId(id);
+            if (isValidId) {
+                const user = await UserModel.findById(id).select('email username');
+                return res.status(200).send({ data: user });
+            }
+            else {
+                return res.status(400).send({ message: `The ObjectId:${id} is invalid` });
+            }
         }
         else {
-            res.status(400).send({ message: `The ObjectId:${id} is invalid` });
+            return res.status(401).send({ message: `Access Denied` });
         }
 
-
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        return res.status(500).send({ message: 'Internal server error' });
     }
 });
 
