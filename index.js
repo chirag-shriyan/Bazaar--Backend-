@@ -8,7 +8,6 @@ const PORT = process.env.SERVER_PORT || 4000;
 app.use(express.json());
 app.use(cors());
 
-// app.use('/api/user', require('./routes/userRoute'));
 
 app.use('/api/login', require('./routes/loginRoute'));
 app.use('/api/signup', require('./routes/signupRoute'));

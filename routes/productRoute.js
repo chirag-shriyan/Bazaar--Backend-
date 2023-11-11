@@ -11,6 +11,7 @@ router.get('/', async (req, res) => {
             price,
             categories,
             sort_by,
+            created_at,
             select,
             search
         } = req.query;
@@ -25,10 +26,10 @@ router.get('/', async (req, res) => {
             queryObj.description = { $regex: description, $options: "i" };
         }
 
-        const priceKey = price?.split('_')[1];
-        const priceValue = price?.split('_')[0];
 
         if (price) {
+            const priceValue = price.split('_')[0];
+            const priceKey = price.split('_')[1];
             switch (priceKey) {
                 case 'eq':
                     queryObj.price = { $eq: priceValue };
@@ -69,22 +70,30 @@ router.get('/', async (req, res) => {
 
         }
 
-
-        // console.log(queryObj);
         let productData = ProductModel.find(queryObj.search ? queryObj.search : queryObj);
         let totalResults = await ProductModel.countDocuments(queryObj.search ? queryObj.search : queryObj);
 
         if (sort_by) {
-            // if the user is using "," instead of "+" in the url
-            // let sortFix = sort.split(",").join(" ");
-            // productData.sort(sortFix);
             productData.sort(sort_by);
         }
 
+        if (created_at) {
+
+            if (created_at === 'asc') {
+                productData.sort({ createdAt: 1 });
+            }
+            else if (created_at === 'desc') {
+                productData.sort({ createdAt: -1 });
+            }
+            else if (created_at == 1 || created_at == -1) {
+                productData.sort({ createdAt: created_at });
+            }
+            else {
+                return res.status(400).send({ message: 'Invalid input for created_at' });
+            }
+        }
+
         if (select) {
-            // if the user is using "," instead of "+" in the url
-            // let selectFix = select.split(",").join(" ");
-            // productData.select(selectFix);
             productData.select(select);
         }
 
@@ -92,7 +101,7 @@ router.get('/', async (req, res) => {
         const limit = req.query.limit || 10;
         const skip = (page - 1) * limit;
 
-        const resData = await productData.skip(skip).limit(limit);
+        const resData = await productData.limit(limit).skip(skip);
         if (resData && resData.length > 0) {
             return res.status(200).send({ data: resData, totalResults });
 
@@ -123,12 +132,15 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
 
     try {
-        // const { id } = req.query;
+        const { id } = req.params;
+        const productData = await ProductModel.findById(id);
 
-
-        const productData = ProductModel.find({ _id: id });
-
-        return res.status(200).send({ data: productData });
+        if (productData) {
+            return res.status(200).send({ data: productData });
+        }
+        else {
+            return res.status(404).send({ message: 'Not Found' });
+        }
 
 
 
@@ -156,7 +168,38 @@ router.post('/', async (req, res) => {
             image,
             categories
         });
-        res.status(200).json(product);
+        return res.status(200).json(product);
+
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            console.log(error);
+            return res.status(403).json(error);
+        }
+        else {
+            return res.status(500).send({ message: 'Internal server error' });
+        }
+    }
+
+
+});
+
+// Update Product
+router.put('/:id', async (req, res) => {
+
+    try {
+        const { id } = req.params;
+        const { name, description, price, quantity, image, categories,  } = req.body;
+
+        const product = await ProductModel.updateOne({ _id: id }, {
+            name,
+            description,
+            price,
+            quantity,
+            image,
+            categories
+        }
+        );
+        return res.status(200).json(product);
 
     } catch (error) {
         if (error.name === 'ValidationError') {
