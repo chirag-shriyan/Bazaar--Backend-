@@ -1,5 +1,6 @@
 const express = require('express');
 const ProductModel = require('../models/ProductModel');
+const { isValidObjectId } = require('mongoose');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -133,15 +134,21 @@ router.get('/:id', async (req, res) => {
 
     try {
         const { id } = req.params;
-        const productData = await ProductModel.findById(id);
+        const isValidId = isValidObjectId(id);
+        if (isValidId) {
+            const productData = await ProductModel.findById(id);
 
-        if (productData) {
-            return res.status(200).send({ data: productData });
+            if (productData) {
+                return res.status(200).send({ data: productData });
+            }
+            else {
+                return res.status(404).send({ message: 'Not Found' });
+            }
+
         }
         else {
-            return res.status(404).send({ message: 'Not Found' });
+            return res.status(400).send({ message: 'Invalid ObjectId' });
         }
-
 
 
     } catch (error) {
@@ -188,18 +195,53 @@ router.put('/:id', async (req, res) => {
 
     try {
         const { id } = req.params;
-        const { name, description, price, quantity, image, categories,  } = req.body;
+        const isValidId = isValidObjectId(id);
 
-        const product = await ProductModel.updateOne({ _id: id }, {
-            name,
-            description,
-            price,
-            quantity,
-            image,
-            categories
+        if (isValidId) {
+            const { name, description, price, quantity, image, categories, } = req.body;
+
+            const product = await ProductModel.updateOne({ _id: id }, {
+                name,
+                description,
+                price,
+                quantity,
+                image,
+                categories
+            }
+            );
+            return res.status(200).json(product);
         }
-        );
-        return res.status(200).json(product);
+        else {
+            return res.status(400).send({ message: 'Invalid ObjectId' });
+        }
+
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            console.log(error);
+            return res.status(403).json(error);
+        }
+        else {
+            return res.status(500).send({ message: 'Internal server error' });
+        }
+    }
+
+
+});
+
+// Delete Product
+router.delete('/:id', async (req, res) => {
+
+    try {
+        const { id } = req.params;
+        const isValidId = isValidObjectId(id);
+
+        if (isValidId) {
+            const product = await ProductModel.deleteOne({ _id: id });
+            return res.status(200).json(product);
+        }
+        else {
+            return res.status(400).send({ message: 'Invalid ObjectId' });
+        }
 
     } catch (error) {
         if (error.name === 'ValidationError') {
