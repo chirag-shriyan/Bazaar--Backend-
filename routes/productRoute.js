@@ -4,7 +4,7 @@ const { isValidObjectId } = require('mongoose');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-
+    console.log('hi');
     try {
         const {
             name,
