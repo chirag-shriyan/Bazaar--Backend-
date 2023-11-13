@@ -11,17 +11,24 @@ router.post('/', async (req, res) => {
 
     try {
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        if (email, password, username) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
 
-        const user = await UserModel.create({
-            email,
-            password: hashedPassword,
-            username
-        });
+            const user = await UserModel.create({
+                email,
+                password: hashedPassword,
+                username
+            });
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-        return res.status(200).send({ token: token });
+            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+            res.cookie('jwt', token, { httpOnly: true });
+            return res.status(200).send({ message: 'Your is signed up' });
+        }
+        else {
+            return res.status(400).send({ message: 'Bad request' });
+        }
+
 
     } catch (error) {
         switch (error.code) {

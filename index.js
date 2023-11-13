@@ -2,11 +2,16 @@ require('dotenv').config();
 const express = require('express');
 const dbConnect = require('./db');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = process.env.SERVER_PORT || 4000;
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin: true,
+    credentials: true,
+}));
+app.use(cookieParser());
 
 
 app.use('/api/login', require('./routes/loginRoute'));

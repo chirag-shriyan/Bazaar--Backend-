@@ -34,17 +34,18 @@ router.get('/', async (req, res) => {
 
 // Added banner
 router.put('/', async (req, res) => {
-    const { adminToken, image } = req.body;
-    console.log(adminToken);
-    console.log(image);
-    try {
-        const adminId = jwt.verify(adminToken, process.env.JWT_SECRET).id;
-        if (adminId) {
+    const { image } = req.body;
+    const token = req.cookies.jwt;
 
-            const isValidId = isValidObjectId(adminId);
+    try {
+        const id = jwt.verify(token, process.env.JWT_SECRET).id;
+
+        if (id) {
+
+            const isValidId = isValidObjectId(id);
             if (isValidId) {
 
-                const isAdmin = await AdminModel.findOne({ userId: adminId });
+                const isAdmin = await AdminModel.findOne({ userId: id });
                 if (isAdmin) {
                     hasRole(isAdmin.role, 'superAdmin');
                     const banner = await BannerModel.find({});
