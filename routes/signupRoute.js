@@ -22,8 +22,12 @@ router.post('/', async (req, res) => {
             });
 
             const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-            res.cookie('jwt', token, { httpOnly: true });
-            return res.status(200).send({ message: 'Your is signed up' });
+
+            const date = new Date();
+            const expireDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 10);
+
+            res.cookie('jwt', token, { httpOnly: true, expires: expireDate });
+            return res.status(200).send({ message: 'Your is signed up', status: 200 });
         }
         else {
             return res.status(400).send({ message: 'Bad request' });
@@ -33,7 +37,7 @@ router.post('/', async (req, res) => {
     } catch (error) {
         switch (error.code) {
             case 11000:
-                return res.status(403).send({ message: error.keyValue, error: 'Already exist in the database' });
+                return res.status(403).send({ message: error.keyValue, error: 'Email already exist' });
                 break;
 
             default:

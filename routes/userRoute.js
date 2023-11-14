@@ -20,8 +20,8 @@ function hasRole(roleArr, findRole) {
 router.get('/', async (req, res) => {
 
     try {
-        const token = req.headers.access_token;
-        const adminId = jwt.verify(token, process.env.JWT_SECRET).id;
+        const token = req.cookies.jwt;
+        const adminId = token && jwt.verify(token, process.env.JWT_SECRET).id;
 
         if (adminId) {
 
@@ -45,7 +45,7 @@ router.get('/', async (req, res) => {
 
             }
             else {
-                return res.status(400).send({ message: `The ObjectId:${adminId} is invalid` });
+                return res.status(401).send({ message: `Access Denied` });
             }
 
         }
@@ -67,11 +67,11 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/data', async (req, res) => {
 
     try {
-        const id = req.params.id;
-
+        const token = req.cookies.jwt;
+        const id = token && jwt.verify(token, process.env.JWT_SECRET).id;
         if (id) {
             const isValidId = isValidObjectId(id);
             if (isValidId) {
@@ -79,12 +79,14 @@ router.get('/:id', async (req, res) => {
                 return res.status(200).send({ data: user });
             }
             else {
-                return res.status(400).send({ message: `The ObjectId:${id} is invalid` });
+                return res.status(400).send({ message: `Bad Request` });
             }
         }
         else {
-            return res.status(401).send({ message: `Access Denied` });
+            return res.status(400).send({ message: `Bad Request` });
         }
+
+
 
     } catch (error) {
         return res.status(500).send({ message: 'Internal server error' });

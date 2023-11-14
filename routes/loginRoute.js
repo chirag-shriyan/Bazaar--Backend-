@@ -10,15 +10,20 @@ router.get('/', async (req, res) => {
 
     try {
         const token = req.cookies.jwt;
-        console.log(token);
+
         if (token) {
-            const isValidToken = token && jwt.verify(token, process.env.JWT_SECRET);
+            const isValidToken = jwt.verify(token, process.env.JWT_SECRET);
             if (isValidToken) {
+
+                const date = new Date();
+                const expireDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 10);
+
+                res.cookie('jwt', token, { httpOnly: true, expires: expireDate });
                 return res.status(200).send({ message: 'Your is logged in', isLoggedIn: true });
             }
         }
         else {
-            return res.status(401).send({ message: 'User is not logged in', isLoggedIn: false });
+            return res.status(200).send({ message: 'User is not logged in', isLoggedIn: false });
         }
 
     } catch (error) {
@@ -30,8 +35,6 @@ router.get('/', async (req, res) => {
 // To login the user
 router.post('/', async (req, res) => {
     const { email, password } = req.body;
-    console.log(email);
-    console.log(password);
 
     try {
         if (email && password) {
@@ -40,8 +43,12 @@ router.post('/', async (req, res) => {
 
             if (IsVerified) {
                 const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-                res.cookie('jwt', token, { httpOnly: true });
-                return res.status(200).send({ message: 'Your is logged in' });
+
+                const date = new Date();
+                const expireDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 10);
+
+                res.cookie('jwt', token, { httpOnly: true, expires: expireDate });
+                return res.status(200).send({ message: 'Your is logged in', status: 200 });
             }
             else {
                 return res.status(401).send({ message: 'username or password is invalid' });
