@@ -1,7 +1,21 @@
 const express = require('express');
 const ProductModel = require('../models/ProductModel');
 const { isValidObjectId } = require('mongoose');
+const AdminModel = require('../models/AdminModel');
 const router = express.Router();
+
+
+function hasRole(roleArr, findRole) {
+
+    for (let i = 0; i < roleArr.length; i++) {
+        const role = roleArr[i];
+        if (role === findRole) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 router.get('/', async (req, res) => {
 
@@ -66,7 +80,7 @@ router.get('/', async (req, res) => {
                 }
             }
             else {
-                return res.status(400).send({ message: 'You can not use search with name and description' });
+                return res.status(400).send({ message: 'You can not use search with name and description', status: 400 });
             }
 
         }
@@ -90,7 +104,7 @@ router.get('/', async (req, res) => {
                 productData.sort({ createdAt: created_at });
             }
             else {
-                return res.status(400).send({ message: 'Invalid input for created_at' });
+                return res.status(400).send({ message: 'Invalid input for created_at', status: 400 });
             }
         }
 
@@ -104,11 +118,11 @@ router.get('/', async (req, res) => {
 
         const resData = await productData.limit(limit).skip(skip);
         if (resData && resData.length > 0) {
-            return res.status(200).send({ data: resData, totalResults });
+            return res.status(200).send({ data: resData, totalResults, status: 200 });
 
         }
         else {
-            return res.status(200).send({ message: "No data found" });
+            return res.status(404).send({ message: "No data found", status: 404 });
         }
 
 
@@ -116,11 +130,11 @@ router.get('/', async (req, res) => {
         console.log(error);
         switch (error.name) {
             case 'CastError':
-                return res.status(400).send({ message: 'Bad Request' });
+                return res.status(400).send({ message: 'Bad Request', status: 400 });
                 break;
 
             default:
-                return res.status(500).send({ message: error });
+                return res.status(500).send({ message: 'Internal server error', status: 500 });
                 break;
         }
         // return res.status(500).send({ message: 'Internal server error' });
@@ -139,21 +153,21 @@ router.get('/:id', async (req, res) => {
             const productData = await ProductModel.findById(id);
 
             if (productData) {
-                return res.status(200).send({ data: productData });
+                return res.status(200).send({ data: productData, status: 200 });
             }
             else {
-                return res.status(404).send({ message: 'Not Found' });
+                return res.status(404).send({ message: 'Not Found', status: 404 });
             }
 
         }
         else {
-            return res.status(400).send({ message: 'Invalid ObjectId' });
+            return res.status(400).send({ message: 'Invalid ObjectId', status: 400 });
         }
 
 
     } catch (error) {
         console.log(error);
-        return res.status(500).send({ message: 'Internal server error' });
+        return res.status(500).send({ message: 'Internal server error', status: 500 });
 
     }
 
@@ -165,17 +179,43 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
 
     try {
-        const { name, description, price, quantity, image, categories } = req.body;
+        const token = req.cookies.jwt;
+        const adminId = token && jwt.verify(token, process.env.JWT_SECRET).id;
 
-        const product = await ProductModel.create({
-            name,
-            description,
-            price,
-            quantity,
-            image,
-            categories
-        });
-        return res.status(200).json(product);
+        if (adminId) {
+            const isValidId = isValidObjectId(adminId);
+            if (isValidId) {
+
+                const admin = await AdminModel.findOne({ userId: adminId });
+                const isAdmin = hasRole(admin.role, 'superAdmin');
+
+                if (isAdmin) {
+                    const { name, description, price, quantity, image, categories } = req.body;
+
+                    const product = await ProductModel.create({
+                        name,
+                        description,
+                        price,
+                        quantity,
+                        image,
+                        categories
+                    });
+                    return res.status(200).json({ product, status: 200 });
+                }
+                else {
+                    return res.status(401).send({ message: 'Access denied', status: 401 });
+                }
+
+            }
+            else {
+                return res.status(401).send({ message: 'Access denied', status: 401 });
+            }
+        }
+        else {
+            return res.status(401).send({ message: 'Access denied', status: 401 });
+        }
+
+
 
     } catch (error) {
         if (error.name === 'ValidationError') {
@@ -183,7 +223,7 @@ router.post('/', async (req, res) => {
             return res.status(403).json(error);
         }
         else {
-            return res.status(500).send({ message: 'Internal server error' });
+            return res.status(500).send({ message: 'Internal server error', status: 500 });
         }
     }
 
@@ -212,16 +252,16 @@ router.put('/:id', async (req, res) => {
             return res.status(200).json(product);
         }
         else {
-            return res.status(400).send({ message: 'Invalid ObjectId' });
+            return res.status(400).send({ message: 'Invalid ObjectId', status: 400 });
         }
 
     } catch (error) {
         if (error.name === 'ValidationError') {
             console.log(error);
-            return res.status(403).json(error);
+            return res.status(403).json({ error, status: 403 });
         }
         else {
-            return res.status(500).send({ message: 'Internal server error' });
+            return res.status(500).send({ message: 'Internal server error', status: 500 });
         }
     }
 
@@ -237,19 +277,19 @@ router.delete('/:id', async (req, res) => {
 
         if (isValidId) {
             const product = await ProductModel.deleteOne({ _id: id });
-            return res.status(200).json(product);
+            return res.status(204).json({ product, status: 204 });
         }
         else {
-            return res.status(400).send({ message: 'Invalid ObjectId' });
+            return res.status(400).send({ message: 'Invalid ObjectId', status: 400 });
         }
 
     } catch (error) {
         if (error.name === 'ValidationError') {
             console.log(error);
-            return res.status(403).json(error);
+            return res.status(403).json({ error, status: 403 });
         }
         else {
-            return res.status(500).send({ message: 'Internal server error' });
+            return res.status(500).send({ message: 'Internal server error', status: 500 });
         }
     }
 

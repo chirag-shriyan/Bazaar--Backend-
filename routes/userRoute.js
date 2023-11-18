@@ -25,8 +25,8 @@ router.get('/', async (req, res) => {
 
         if (adminId) {
 
-            const isValidAdminId = isValidObjectId(adminId);
-            if (isValidAdminId) {
+            const isValidId = isValidObjectId(adminId);
+            if (isValidId) {
                 const admin = await AdminModel.findOne({ userId: adminId }).select('role');
                 const isAdmin = admin && hasRole(admin.role, 'superAdmin');
 
@@ -37,31 +37,31 @@ router.get('/', async (req, res) => {
 
                     const users = await UserModel.find({}).skip(skip).limit(limit);
                     const totalResults = await UserModel.find({}).countDocuments();
-                    return res.status(200).send({ data: users, totalResults });
+                    return res.status(200).send({ data: users, totalResults, status: 200 });
                 }
                 else {
-                    return res.status(401).send({ message: `Access Denied` });
+                    return res.status(401).send({ message: `Access Denied`, status: 401 });
                 }
 
             }
             else {
-                return res.status(401).send({ message: `Access Denied` });
+                return res.status(401).send({ message: `Access Denied`, status: 401 });
             }
 
         }
         else {
-            return res.status(401).send({ message: `Access Denied` });
+            return res.status(401).send({ message: `Access Denied`, status: 401 });
         }
 
     } catch (error) {
         console.log(error);
         switch (error.message) {
             case 'jwt malformed':
-                return res.status(401).send({ message: `Access Denied` });
+                return res.status(401).send({ message: `Access Denied`, status: 401 });
                 break;
 
             default:
-                return res.status(500).send({ message: 'Internal server error' });
+                return res.status(500).send({ message: 'Internal server error', status: 500 });
                 break;
         }
     }
@@ -76,20 +76,20 @@ router.get('/data', async (req, res) => {
             const isValidId = isValidObjectId(id);
             if (isValidId) {
                 const user = await UserModel.findById(id).select('email username');
-                return res.status(200).send({ data: user });
+                return res.status(200).send({ data: user, status: 200 });
             }
             else {
-                return res.status(400).send({ message: `Bad Request` });
+                return res.status(400).send({ message: `Bad Request`, status: 400 });
             }
         }
         else {
-            return res.status(400).send({ message: `Bad Request` });
+            return res.status(400).send({ message: `Bad Request`, status: 400 });
         }
 
 
 
     } catch (error) {
-        return res.status(500).send({ message: 'Internal server error' });
+        return res.status(500).send({ message: 'Internal server error', status: 500 });
     }
 });
 

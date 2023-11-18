@@ -6,10 +6,10 @@ const bcrypt = require('bcrypt');
 const UserModel = require('../models/UserModel');
 
 router.post('/', async (req, res) => {
-    const { email, password, username } = req.body;
 
 
     try {
+        const { email, password, username } = req.body;
 
         if (email, password, username) {
             const salt = await bcrypt.genSalt(10);
@@ -30,18 +30,18 @@ router.post('/', async (req, res) => {
             return res.status(200).send({ message: 'Your is signed up', status: 200 });
         }
         else {
-            return res.status(400).send({ message: 'Bad request' });
+            return res.status(400).send({ message: 'Bad request', status: 400 });
         }
 
 
     } catch (error) {
         switch (error.code) {
             case 11000:
-                return res.status(403).send({ message: error.keyValue, error: 'Email already exist' });
+                return res.status(403).send({ message: error.keyValue, error: 'Email already exist', status: 403 });
                 break;
 
             default:
-                return res.status(500).send({ message: 'Internal server error' });
+                return res.status(500).send({ message: 'Internal server error', status: 500 });
                 break;
         }
 

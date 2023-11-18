@@ -19,15 +19,15 @@ router.get('/', async (req, res) => {
                 const expireDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 10);
 
                 res.cookie('jwt', token, { httpOnly: true, expires: expireDate });
-                return res.status(200).send({ message: 'Your is logged in', isLoggedIn: true });
+                return res.status(200).send({ message: 'Your is logged in', isLoggedIn: true, status: 200 });
             }
         }
         else {
-            return res.status(200).send({ message: 'User is not logged in', isLoggedIn: false });
+            return res.status(200).send({ message: 'User is not logged in', isLoggedIn: false, status: 200 });
         }
 
     } catch (error) {
-        return res.status(500).send({ message: 'Internal server error' });
+        return res.status(500).send({ message: 'Internal server error', status: 500 });
     }
 });
 
@@ -51,17 +51,17 @@ router.post('/', async (req, res) => {
                 return res.status(200).send({ message: 'Your is logged in', status: 200 });
             }
             else {
-                return res.status(401).send({ message: 'username or password is invalid' });
+                return res.status(400).send({ message: 'username or password is invalid', status: 400 });
             }
         }
         else {
-            return res.status(400).send({ message: 'Bad request' });
+            return res.status(400).send({ message: 'Bad request', status: 400 });
         }
 
 
     } catch (error) {
         console.log(error);
-        return res.status(500).send({ message: 'Internal server error' });
+        return res.status(500).send({ message: 'Internal server error', status: 500 });
     }
 });
 
