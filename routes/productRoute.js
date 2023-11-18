@@ -2,6 +2,7 @@ const express = require('express');
 const ProductModel = require('../models/ProductModel');
 const { isValidObjectId } = require('mongoose');
 const AdminModel = require('../models/AdminModel');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 
 
@@ -182,45 +183,40 @@ router.post('/', async (req, res) => {
         const token = req.cookies.jwt;
         const adminId = token && jwt.verify(token, process.env.JWT_SECRET).id;
 
-        if (adminId) {
-            const isValidId = isValidObjectId(adminId);
-            if (isValidId) {
+        const isValidId = adminId && isValidObjectId(adminId);
 
-                const admin = await AdminModel.findOne({ userId: adminId });
-                const isAdmin = hasRole(admin.role, 'superAdmin');
+        if (isValidId) {
 
-                if (isAdmin) {
-                    const { name, description, price, quantity, image, categories } = req.body;
+            const admin = await AdminModel.findOne({ userId: adminId });
+            const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+            if (isAdmin) {
+                const { name, description, price, quantity, image, imageName, categories } = req.body;
 
-                    const product = await ProductModel.create({
-                        name,
-                        description,
-                        price,
-                        quantity,
-                        image,
-                        categories
-                    });
-                    return res.status(200).json({ product, status: 200 });
-                }
-                else {
-                    return res.status(401).send({ message: 'Access denied', status: 401 });
-                }
-
+                const product = await ProductModel.create({
+                    name,
+                    description,
+                    price,
+                    quantity,
+                    image,
+                    imageName,
+                    categories
+                });
+                return res.status(200).send({ product, status: 200 });
             }
             else {
                 return res.status(401).send({ message: 'Access denied', status: 401 });
             }
+
         }
         else {
             return res.status(401).send({ message: 'Access denied', status: 401 });
         }
 
 
-
     } catch (error) {
+        console.log(error);
         if (error.name === 'ValidationError') {
-            console.log(error);
-            return res.status(403).json(error);
+            return res.status(403).send(error);
         }
         else {
             return res.status(500).send({ message: 'Internal server error', status: 500 });
@@ -234,31 +230,44 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
 
     try {
-        const { id } = req.params;
-        const isValidId = isValidObjectId(id);
+        const token = req.cookies.jwt;
+        const adminId = token && jwt.verify(token, process.env.JWT_SECRET).id;
+
+        const isValidId = adminId && isValidObjectId(adminId);
+
 
         if (isValidId) {
-            const { name, description, price, quantity, image, categories, } = req.body;
+            const admin = await AdminModel.findOne({ userId: adminId });
+            const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+            if (isAdmin) {
+                const { name, description, price, quantity, image, imageName, categories, } = req.body;
+                const id = req.params.id;
 
-            const product = await ProductModel.updateOne({ _id: id }, {
-                name,
-                description,
-                price,
-                quantity,
-                image,
-                categories
+                const product = await ProductModel.updateOne({ _id: id }, {
+                    name,
+                    description,
+                    price,
+                    quantity,
+                    image,
+                    imageName,
+                    categories
+                }
+                );
+                return res.status(200).send(product);
             }
-            );
-            return res.status(200).json(product);
+            else {
+                return res.status(401).send({ message: 'Access denied', status: 401 });
+            }
+
         }
         else {
-            return res.status(400).send({ message: 'Invalid ObjectId', status: 400 });
+            return res.status(401).send({ message: 'Access denied', status: 401 });
         }
 
     } catch (error) {
         if (error.name === 'ValidationError') {
             console.log(error);
-            return res.status(403).json({ error, status: 403 });
+            return res.status(403).send({ error, status: 403 });
         }
         else {
             return res.status(500).send({ message: 'Internal server error', status: 500 });
@@ -272,21 +281,30 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
 
     try {
-        const { id } = req.params;
-        const isValidId = isValidObjectId(id);
+        const token = req.cookies.jwt;
+        const adminId = token && jwt.verify(token, process.env.JWT_SECRET).id;
+        const isValidId = adminId && isValidObjectId(adminId);
 
         if (isValidId) {
-            const product = await ProductModel.deleteOne({ _id: id });
-            return res.status(204).json({ product, status: 204 });
+            const admin = await AdminModel.findOne({ userId: adminId });
+            const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+            if (isAdmin) {
+                const id = req.params.id;
+                await ProductModel.deleteOne({ _id: id });
+                return res.status(200).send({ message: 'Products is deleted', status: 204 });
+            }
+            else {
+                return res.status(401).send({ message: 'Access denied', status: 401 });
+            }
         }
         else {
-            return res.status(400).send({ message: 'Invalid ObjectId', status: 400 });
+            return res.status(401).send({ message: 'Access denied', status: 401 });
         }
 
     } catch (error) {
         if (error.name === 'ValidationError') {
             console.log(error);
-            return res.status(403).json({ error, status: 403 });
+            return res.status(403).send({ error, status: 403 });
         }
         else {
             return res.status(500).send({ message: 'Internal server error', status: 500 });
