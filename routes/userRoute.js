@@ -67,7 +67,9 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/data', async (req, res) => {
+// To get user data
+
+router.get('/user', async (req, res) => {
 
     try {
         const token = req.cookies.jwt;
@@ -76,7 +78,21 @@ router.get('/data', async (req, res) => {
             const isValidId = isValidObjectId(id);
             if (isValidId) {
                 const user = await UserModel.findById(id).select('email username');
-                return res.status(200).send({ data: user, status: 200 });
+                const admin = await AdminModel.findOne({ userId: id }).select('role');
+                if (user) {
+                    const resData = {
+                        data: {
+                            username: user.username,
+                            email: user.email,
+                            role: admin?.role,
+                        },
+                        status: 200
+                    }
+                    return res.status(200).send(resData);
+                }
+                else {
+                    return res.status(404).send({ message: 'User not found', status: 404 });
+                }
             }
             else {
                 return res.status(400).send({ message: `Bad Request`, status: 400 });
@@ -89,6 +105,7 @@ router.get('/data', async (req, res) => {
 
 
     } catch (error) {
+        console.log(error);
         return res.status(500).send({ message: 'Internal server error', status: 500 });
     }
 });
