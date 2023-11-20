@@ -34,12 +34,13 @@ router.get('/', async (req, res) => {
 
 // To login the user
 router.post('/', async (req, res) => {
-    const { email, password } = req.body;
 
     try {
+        const { email, password } = req.body;
+
         if (email && password) {
             const user = await UserModel.findOne({ email: email });
-            const IsVerified = await bcrypt.compare(password, user.password);
+            const IsVerified = user && await bcrypt.compare(password, user.password);
 
             if (IsVerified) {
                 const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
