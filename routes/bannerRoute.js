@@ -45,7 +45,7 @@ router.put('/', async (req, res) => {
             if (isValidId) {
 
                 const admin = await AdminModel.findOne({ userId: adminId });
-                const isAdmin = hasRole(admin.role, 'superAdmin');
+                const isAdmin = hasRole(admin.roles, 'superAdmin');
                 if (isAdmin) {
                     const banner = await BannerModel.find({});
                     if (banner[0]) {

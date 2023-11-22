@@ -27,8 +27,8 @@ router.get('/', async (req, res) => {
 
             const isValidId = isValidObjectId(adminId);
             if (isValidId) {
-                const admin = await AdminModel.findOne({ userId: adminId }).select('role');
-                const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+                const admin = await AdminModel.findOne({ userId: adminId }).select('roles');
+                const isAdmin = admin && hasRole(admin.roles, 'superAdmin');
 
                 if (isAdmin) {
                     const limit = req.query.limit || 5;
@@ -78,13 +78,14 @@ router.get('/user', async (req, res) => {
             const isValidId = isValidObjectId(id);
             if (isValidId) {
                 const user = await UserModel.findById(id).select('email username');
-                const admin = await AdminModel.findOne({ userId: id }).select('role');
+                const admin = await AdminModel.findOne({ userId: id }).select('roles');
+
                 if (user) {
                     const resData = {
                         data: {
                             username: user.username,
                             email: user.email,
-                            role: admin?.role,
+                            roles: admin?.roles,
                         },
                         status: 200
                     }

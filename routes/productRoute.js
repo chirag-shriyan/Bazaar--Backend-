@@ -188,7 +188,7 @@ router.post('/', async (req, res) => {
         if (isValidId) {
 
             const admin = await AdminModel.findOne({ userId: adminId });
-            const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+            const isAdmin = admin && hasRole(admin.roles, 'superAdmin');
             if (isAdmin) {
                 const { name, description, price, quantity, image, imageName, categories } = req.body;
 
@@ -235,10 +235,9 @@ router.put('/:id', async (req, res) => {
 
         const isValidId = adminId && isValidObjectId(adminId);
 
-
         if (isValidId) {
             const admin = await AdminModel.findOne({ userId: adminId });
-            const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+            const isAdmin = admin && hasRole(admin.roles, 'superAdmin');
             if (isAdmin) {
                 const { name, description, price, quantity, image, imageName, categories, } = req.body;
                 const id = req.params.id;
@@ -287,7 +286,7 @@ router.delete('/:id', async (req, res) => {
 
         if (isValidId) {
             const admin = await AdminModel.findOne({ userId: adminId });
-            const isAdmin = admin && hasRole(admin.role, 'superAdmin');
+            const isAdmin = admin && hasRole(admin.roles, 'superAdmin');
             if (isAdmin) {
                 const id = req.params.id;
                 await ProductModel.deleteOne({ _id: id });
