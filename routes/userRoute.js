@@ -40,24 +40,24 @@ router.get('/', async (req, res) => {
                     return res.status(200).send({ data: users, totalResults, status: 200 });
                 }
                 else {
-                    return res.status(401).send({ message: `Access Denied`, status: 401 });
+                    return res.status(401).send({ message: 'Access Denied', status: 401 });
                 }
 
             }
             else {
-                return res.status(401).send({ message: `Access Denied`, status: 401 });
+                return res.status(401).send({ message: 'Access Denied', status: 401 });
             }
 
         }
         else {
-            return res.status(401).send({ message: `Access Denied`, status: 401 });
+            return res.status(401).send({ message: 'Access Denied', status: 401 });
         }
 
     } catch (error) {
         console.log(error);
         switch (error.message) {
             case 'jwt malformed':
-                return res.status(401).send({ message: `Access Denied`, status: 401 });
+                return res.status(401).send({ message: 'Access Denied', status: 401 });
                 break;
 
             default:
@@ -96,11 +96,11 @@ router.get('/user', async (req, res) => {
                 }
             }
             else {
-                return res.status(400).send({ message: `Bad Request`, status: 400 });
+                return res.status(400).send({ message: 'Bad Request', status: 400 });
             }
         }
         else {
-            return res.status(400).send({ message: `Bad Request`, status: 400 });
+            return res.status(400).send({ message: 'Bad Request', status: 400 });
         }
 
 

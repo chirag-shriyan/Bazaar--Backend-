@@ -145,6 +145,8 @@ router.get('/', async (req, res) => {
 
 });
 
+
+// Get a single Product
 router.get('/:id', async (req, res) => {
 
     try {

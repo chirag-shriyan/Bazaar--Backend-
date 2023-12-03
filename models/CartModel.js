@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const AdminSchema = new Schema({
-    roles: { type: [String], default: [] },
+const CartSchema = new Schema({
     userId: { type: mongoose.SchemaTypes.ObjectId, required: true, unique: true },
+    products: { type: [String], default: [] },
 }, { timestamps: true });
 
-const AdminModel = mongoose.model('admins', AdminSchema);
+const CartModel = mongoose.model('carts', CartSchema);
 
-module.exports = AdminModel;
+module.exports = CartModel;

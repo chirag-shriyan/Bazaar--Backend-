@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const AdminModel = require('../models/AdminModel');
 const BannerModel = require('../models/BannerModel');
 const { isValidObjectId } = require('mongoose');
