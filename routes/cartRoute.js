@@ -50,23 +50,25 @@ router.put('/', async (req, res) => {
         if (id) {
             const isValidId = isValidObjectId(id);
             if (isValidId) {
-                const { products } = req.body;
-                const userCart = await CartModel.find({ userId: id });
-                if (userCart && products) {
+                const { product } = req.body;
+                const userCart = await CartModel.findOne({ userId: id });
+                
+                if (userCart?.products.length > 0 && product) {
+                    const productIds = userCart.products;
+                    productIds.push(product);
                     const updatedCart = {
-                        userId: id,
-                        products: products
+                        products: productIds,
                     }
                     const cart = await CartModel.updateOne({ userId: id }, updatedCart);
                     return res.status(200).send({ message: 'Products is add to your cart', cart: cart, status: 200 });
                 }
                 else {
-
-                    if (products) {
-
+                    if (product) {
+                        const productIds = [];
+                        productIds.push(product);
                         const newCart = {
                             userId: id,
-                            products: products
+                            products: productIds
                         }
                         const cart = await CartModel.create(newCart);
                         return res.status(200).send({ message: 'Products is add to your cart', cart: cart, status: 200 });
@@ -94,3 +96,5 @@ router.put('/', async (req, res) => {
     }
 
 });
+
+module.exports = router
